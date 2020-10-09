@@ -4,7 +4,7 @@ class Bookmark{
     {
         this.Id = 0;
         this.Name = name !== undefined ? name : "";
-        this.Url = url !== undefined ? email : "";
-        this.Category = category !== undefined ? phone : "";
+        this.Url = url !== undefined ? url : "";
+        this.Category = category !== undefined ? category : "";
     }
 }

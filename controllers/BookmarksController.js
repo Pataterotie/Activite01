@@ -12,7 +12,8 @@ module.exports =
             let params = this.getQueryStringParams();
             console.log(this.req);
             if (this.req.url[this.req.url.length - 1] == '?') {
-                this.response.JSON([{name : "retourne le signet avec le nom en apram", sort : ""}]);
+                this.response.JSON([{name : "retourne le signet avec le nom en param", 
+                sort : "retourne la liste de signets en ordre croissant du parametre"}]);
             }
             if (params === null) {
                 if (!isNaN(id))

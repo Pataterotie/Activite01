@@ -1,10 +1,13 @@
 const Repository = require('../models/Repository');
+const Validator = require('../models/validator');
+const Utilites = require('../utilities');
 
 module.exports =
     class BookmarksController extends require('./Controller') {
         constructor(req, res) {
             super(req, res);
-            this.bookmarksRepository = new Repository('Bookmarks');
+            this.bookmarksRepository = new Repository('Bookmarks'); 
+            this.bookmarksValidation = new Validator();
         }
         // GET: api/bookmarks
         // GET: api/bookmarks/{id}
@@ -12,10 +15,9 @@ module.exports =
             let params = this.getQueryStringParams();
             console.log(this.req);
             if (this.req.url[this.req.url.length - 1] == '?') {
-                this.response.JSON([{name : "retourne le signet avec le nom en param", 
-                sort : "retourne la liste de signets en ordre croissant du parametre"}]);
+                this.response.JSON(this.help());
             }
-            if (params === null) {
+            else if (params === null) {
                 if (!isNaN(id))
                     this.response.JSON(this.bookmarksRepository.get(id));
                 else
@@ -53,26 +55,38 @@ module.exports =
                 this.response.JSON(list);
             }
         }
+
+            
         // POST: api/bookmarks body payload[{"Id": 0, "Name": "...", "Url": "...", "Category": "..."}]
         post(bookmark) {
-
-            let newBookmark = this.bookmarksRepository.add(bookmark);
-            if (newBookmark)
-                this.response.created(newBookmark);
+            if (this.bookmarksValidation.validateBookmark(bookmark.Name, bookmark.Url, bookmark.Category))
+            {
+                let newBookmark = this.bookmarksRepository.add(bookmark);
+                if (newBookmark)
+                    this.response.created(newBookmark);
+                else
+                    this.response.internalError();
+            }
             else
-                this.response.internalError();
+                this.response.badRequest();
+        } 
+        // PUT: api/bookmarks body payload[{"Id":..., "Name": "...", "Url": "...", "Category": "..."}]
+        put(bookmark) {
+            let oldBookmark = this.bookmarksRepository.get(Utilites.decomposePath(this.req.url).id)
+            if (typeof oldBookmark != "undefined") {
+                // todo : validate contact before updating  
+                oldBookmark.Name = bookmark.Name;
+                oldBookmark.Url = bookmark.Url;
+                oldBookmark.Category = bookmark.Category;
+                if (this.bookmarksRepository.update(oldBookmark))
+                    this.response.ok();
+                else
+                    this.response.notFound();
+            }
         }
-        // PUT: api/contacts body payload[{"Id":..., "Name": "...", "Email": "...", "Phone": "..."}]
-        put(contact) {
-            // todo : validate contact before updating
-            if (this.contactsRepository.update(contact))
-                this.response.ok();
-            else
-                this.response.notFound();
-        }
-        // DELETE: api/contacts/{id}
+        // DELETE: api/bookmarks/{id}
         remove(id) {
-            if (this.contactsRepository.remove(id))
+            if (this.bookmarksRepository.remove(id))
                 this.response.accepted();
             else
                 this.response.notFound();
@@ -95,5 +109,23 @@ module.exports =
                 text = text.slice(1, -1);
             }
             return text;
+        }
+
+        help() {
+            // expose all the possible query strings
+            let content = "<div style=font-family:arial>";
+            content += "<h3>GET : api/ endpoint  <br> List possible des parametres GET:</h3><hr>";
+            content += "<h4>bookmarks retourne la liste des signets en ordre croissant d'Id </h4>";
+            content += "<h4>bookmarks?sort=\"name\" retourne la liste des signets en ordre croissant de nom </h4>";
+            content += "<h4>bookmarks?sort=\"category\" retourne la liste des signets en ordre croissant de catégorie</h4>";
+            content += "<h4>bookmarks/id retourne le signet ayant ce id</h4>";
+            content += "<h4>bookmark?name=\"nom\" retourne le signet qui contient ce nom</h4>";
+            content += "<h4>bookmarks?name=\"ab*\" retourne la liste des signets qui ont ab comme préfixe</h4>";
+            content += "<h4>bookmarks?category=\"sport\" retourne la liste de signets qui ont sport comme catégorie</h4>";
+            content += "<h4>bookmark? retourne la liste des parametres pour faire une requete</h4>";
+            content += "<h4>Post: api/bookmarks ajouter un signet</h4>";
+            content += "<h4>Put: api/bookmarks/id modifier le signet qui contient ce id</h4>";
+            content += "<h4>Delete: api/bookmarks/id supprimer le signet qui contient ce id</h4></div>";
+            return content;
         }
     }

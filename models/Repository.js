@@ -64,6 +64,7 @@ class Repository {
         }
         return null;
     }
+
     remove(id) {
         let index = 0;
         for(let object of this.objectsList){

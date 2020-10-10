@@ -92,7 +92,7 @@ module.exports =
                 this.response.notFound();
         }
 
-        searchStart = function (liste, chaine) {
+        searchStart (liste, chaine) {
             let tab = [];
             liste.forEach(element => {
                 if (element.Name.length >= chaine.length) {
@@ -103,7 +103,7 @@ module.exports =
             return tab;
         }
 
-        nettoyerParam = function (text) {
+        nettoyerParam (text) {
             text = text.trim();
             if (text[0] == '"' && text[text.length - 1] == '"') {
                 text = text.slice(1, -1);
